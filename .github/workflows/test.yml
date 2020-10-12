@@ -1,0 +1,34 @@
+on: [push, pull_request]
+
+name: Tests
+
+jobs:
+  test:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+      - run: DATABASE_URL=postgres://test:test@postgres/test cargo test -- --nocapture
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: test
+      #     env:
+      #       DATABASE_URL: postgres://test:test@postgres/test
+
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
